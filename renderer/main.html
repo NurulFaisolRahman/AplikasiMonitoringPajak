@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SIGN IN</title>
+<link rel="stylesheet" href = "../bower_components/bootstrap/dist/css/bootstrap.min.css" />
+<link rel="stylesheet" href="SignIn.css">
+</head>
+<body>
+	<div class="login-form" id=SignIn>
+    <form id="FormLogin" class="border border-danger">
+  		<div class="avatar">
+  			<img src="../avatar.png" alt="Avatar">
+  		</div>
+			<br><br>
+			<div id="Pesan" style="display: none;">
+				<div class="alert alert-danger alert-dismissible fade show" role="alert">
+				  <strong id="IsiPesan">Pesan</strong>
+				  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+				    <span aria-hidden="true" id="Tutup">&times;</span>
+				  </button>
+				</div>
+			</div>
+			<div class="form-group" id="Autentikasi">
+	       <input type="password" class="form-control text-center rounded-pill" id="NPWPD" placeholder="Input NPWPD" required>
+				 <br>
+				 <button class="btn btn-lg text-white btn-block rounded-pill" id="Login"><b>SIGN IN</b></button>
+	    </div>
+			<div class="form-group" id="JenisData" style="display: none;">
+				 <button class="btn btn-lg text-white bg-success btn-block rounded-pill" id="text"><b>csv/txt</b></button>
+				 <button class="btn btn-lg text-white bg-primary btn-block rounded-pill" id="api"><b>Web Servis</b></button>
+				 <button class="btn btn-lg text-white bg-warning btn-block rounded-pill" id="db"><b>Database</b></button>
+	    </div>
+			<div class="form-group" id="Uploadcsv" style="display: none;">
+        <input type="file" class="form-control-file" id="DataCSV">
+				<br>
+				<button class="btn btn-lg text-white btn-block rounded-pill" id="UploadText"><b>UPLOAD CSV</b></button>
+      </div>
+			<div class="form-group" id="Uploadapi" style="display: none;">
+        <input type="text" class="form-control text-center rounded-pill" id="URLapi" placeholder="Input URL">
+				<br>
+				<button class="btn btn-lg text-white btn-block rounded-pill" id="UploadApi"><b>UPLOAD DATA</b></button>
+      </div>
+			<div class="form-group" id="Uploaddb" style="display: none;">
+				<select class="form-control btn-light" name="JenisDB">
+        	<option value="0">Postgre</option>
+					<option value="1">MySQL</option>
+					<option value="2">SQL Server</option>
+					<option value="3">Oracle</option>
+					<option value="4">Firebird</option>
+					<option value="5">DB2</option>
+				</select>
+				<br>
+        <input type="text" class="form-control text-center rounded-pill" id="Querydb" placeholder="Input Query">
+				<br>
+				<button class="btn btn-lg text-white btn-block rounded-pill" id="UploadDb"><b>UPLOAD DATA</b></button>
+      </div>
+    </form>
+	</div>
+	<script type="text/javascript" src="./app.js"></script>
+</body>
+</html>

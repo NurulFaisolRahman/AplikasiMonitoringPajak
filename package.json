@@ -1,0 +1,22 @@
+{
+  "name": "aplikasimonitoringpajak",
+  "version": "0.1.0",
+  "description": "Konversi CSV ke JSON",
+  "main": "main.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NurulFaisolRahman/AplikasiMonitoringPajak.git"
+  },
+  "keywords": [
+    "CSV",
+    "JSON",
+    "Electron",
+    "Javascript",
+    "Dekstop"
+  ],
+  "author": "nurulfaisolrahman@gmail.com",
+  "dependencies": {
+    "jquery": "^3.4.1",
+    "pg": "^7.14.0"
+  }
+}
