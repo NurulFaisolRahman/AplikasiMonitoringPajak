@@ -1,13 +1,13 @@
 if (!navigator.onLine) {
   document.getElementById("IsiPesan").innerHTML = 'Koneksi Gagal'
-  document.getElementById("Pesan").style.display = 'block';
+  document.getElementById("Pesan").style.display = 'block'
 }
 window.addEventListener('online', () => {
-  document.getElementById("Pesan").style.display = 'none';
+  document.getElementById("Pesan").style.display = 'none'
 })
 window.addEventListener('offline', () => {
   document.getElementById("IsiPesan").innerHTML = 'Koneksi Gagal'
-  document.getElementById("Pesan").style.display = 'block';
+  document.getElementById("Pesan").style.display = 'block'
 })
 
 $ = require('jquery');
@@ -23,36 +23,42 @@ input.addEventListener("keyup", function(event) {
 $('#Login').on('click', () => {
     if (!navigator.onLine) {
       document.getElementById("IsiPesan").innerHTML = 'Koneksi Gagal'
-      document.getElementById("Pesan").style.display = 'block';
+      document.getElementById("Pesan").style.display = 'block'
     } else {
       if ($('#NPWPD').val() == '') {
         document.getElementById("IsiPesan").innerHTML = 'Mohon Input NPWPD'
-        document.getElementById("Pesan").style.display = 'block';
+        document.getElementById("Pesan").style.display = 'block'
+      } else if ($('#Password').val() == '') {
+        document.getElementById("IsiPesan").innerHTML = 'Mohon Input Password'
+        document.getElementById("Pesan").style.display = 'block'
       } else {
-        var NPWPD = { NPWPD: $('#NPWPD').val() };
+        var Akun = { NPWPD: $('#NPWPD').val(),Password: $('#Password').val() };
       	$.ajax({
           type	: 'POST',
       		url		: 'http://localhost/MonitoringPajak/Autentikasi/AutentikasiWajibPajak',
-      		data	: NPWPD,
+      		data	: Akun,
       		success	: function(pesan){
             if (pesan == 'ok') {
-              document.getElementById("Pesan").style.display = 'block';
+              document.getElementById("Pesan").style.display = 'block'
               document.getElementById("IsiPesan").innerHTML = 'Pilih Jenis Data'
-              document.getElementById("Autentikasi").style.display = 'none';
-              document.getElementById("JenisData").style.display = 'block';
+              document.getElementById("Autentikasi").style.display = 'none'
+              document.getElementById("JenisData").style.display = 'block'
             } else {
               if (pesan == 'Disable') {
                 document.getElementById("IsiPesan").innerHTML = 'Akun Di Non Aktifkan Oleh Server'
-                document.getElementById("Pesan").style.display = 'block';
+                document.getElementById("Pesan").style.display = 'block'
+              } else if (pesan == 'fail') {
+                document.getElementById("IsiPesan").innerHTML = 'Password Salah'
+                document.getElementById("Pesan").style.display = 'block'
               } else {
                 document.getElementById("IsiPesan").innerHTML = 'NPWPD Tidak Terdaftar DiServer!'
-                document.getElementById("Pesan").style.display = 'block';
+                document.getElementById("Pesan").style.display = 'block'
               }
             }
       		}
       	}).fail(function() {
           document.getElementById("IsiPesan").innerHTML = 'Koneksi Gagal!'
-          document.getElementById("Pesan").style.display = 'block';
+          document.getElementById("Pesan").style.display = 'block'
         });
       }
     }
@@ -95,7 +101,8 @@ $("#UploadText").click(function(){
  				for (let i = 0; i < lines.length; i++) {
  					lines[i] = lines[i].replace(/\s/, '') //delete all blanks
  				}
- 				var result = [];
+        var DataWajibPajak = {};
+ 				var InputData = [];
  				var headers = lines[0].split(";");
  				for (var i = 1; i < lines.length-1; i++) {
  					var obj = {};
@@ -103,46 +110,49 @@ $("#UploadText").click(function(){
  					for (var j = 0; j < headers.length; j++) {
  						obj[headers[j]] = currentline[j];
  					}
- 					result.push(obj);
+ 					InputData.push(obj);
  				}
+        DataWajibPajak[$('#NPWPD').val()] = InputData;
         $.ajax({
           type	: 'POST',
       		url		: 'http://localhost/MonitoringPajak/Autentikasi/InputTransaksiWajibPajak',
-          data  : JSON.stringify(result),
+          data  : JSON.stringify(DataWajibPajak),
           contentType: 'application/json',
       		success	: function(pesan){
             if (pesan == 'ok') {
               document.getElementById("IsiPesan").innerHTML = 'Sukses'
-              document.getElementById("Pesan").style.display = 'block';
+              document.getElementById("Pesan").style.display = 'block'
+              document.getElementById('DataCSV').value = ""
             } else {
               alert(pesan)
               document.getElementById("IsiPesan").innerHTML = 'Gagal'
-              document.getElementById("Pesan").style.display = 'block';
+              document.getElementById("Pesan").style.display = 'block'
             }
       		}
       	}).fail(function(e) {
           console.log(e);
-          document.getElementById("IsiPesan").innerHTML = 'Koneksi Gagal'
-          document.getElementById("Pesan").style.display = 'block';
+          document.getElementById("IsiPesan").innerHTML = 'Gagal'
+          document.getElementById("Pesan").style.display = 'block'
         });
  			}
  			reader.readAsText(fileUpload.files[0]);
  		}
     else {
       document.getElementById("IsiPesan").innerHTML = 'Browser Tidak Support HTML5'
-      document.getElementById("Pesan").style.display = 'block';
+      document.getElementById("Pesan").style.display = 'block'
  		}
  	}
   else {
-    document.getElementById("IsiPesan").innerHTML = 'Mohon Input Data CSV!'
-    document.getElementById("Pesan").style.display = 'block';
+    document.getElementById("IsiPesan").innerHTML = 'Mohon Input Data CSV/TXT!'
+    document.getElementById("Pesan").style.display = 'block'
+    document.getElementById('DataCSV').value = ""
  	}
 });
 
 $("#UploadApi").click(function(){
   if ($('#URLapi').val() == '') {
     document.getElementById("IsiPesan").innerHTML = 'Mohon Input URL'
-    document.getElementById("Pesan").style.display = 'block';
+    document.getElementById("Pesan").style.display = 'block'
   } else {
     $.ajax({
       type	: 'POST',
@@ -156,22 +166,22 @@ $("#UploadApi").click(function(){
       		success	: function(pesan){
             if (pesan == 'ok') {
               document.getElementById("IsiPesan").innerHTML = 'Sukses'
-              document.getElementById("Pesan").style.display = 'block';
+              document.getElementById("Pesan").style.display = 'block'
             } else {
               alert(pesan)
               document.getElementById("IsiPesan").innerHTML = 'Gagal'
-              document.getElementById("Pesan").style.display = 'block';
+              document.getElementById("Pesan").style.display = 'block'
             }
       		}
       	}).fail(function(e) {
           console.log(e);
           document.getElementById("IsiPesan").innerHTML = 'Koneksi Gagal'
-          document.getElementById("Pesan").style.display = 'block';
+          document.getElementById("Pesan").style.display = 'block'
         });
       }
     }).fail(function() {
       document.getElementById("IsiPesan").innerHTML = 'URL Tidak Valid'
-      document.getElementById("Pesan").style.display = 'block';;
+      document.getElementById("Pesan").style.display = 'block'
     })
   }
 });
@@ -179,7 +189,7 @@ $("#UploadApi").click(function(){
 $("#UploadDb").click(function(){
   if ($('#Querydb').val() == '') {
     document.getElementById("IsiPesan").innerHTML = 'Mohon Input Query'
-    document.getElementById("Pesan").style.display = 'block';
+    document.getElementById("Pesan").style.display = 'block'
   } else {
     const {Pool,Client} = require('pg')
     const connectionString = "postgressql://econk:iyonk@localhost:5432/econk";
@@ -201,22 +211,22 @@ $("#UploadDb").click(function(){
         		success	: function(pesan){
               if (pesan == 'ok') {
                 document.getElementById("IsiPesan").innerHTML = 'Sukses'
-                document.getElementById("Pesan").style.display = 'block';
+                document.getElementById("Pesan").style.display = 'block'
               } else {
                 alert(pesan)
                 document.getElementById("IsiPesan").innerHTML = 'Gagal'
-                document.getElementById("Pesan").style.display = 'block';
+                document.getElementById("Pesan").style.display = 'block'
               }
         		}
         	}).fail(function(e) {
             console.log(e);
             document.getElementById("IsiPesan").innerHTML = 'Koneksi Gagal'
-            document.getElementById("Pesan").style.display = 'block';
+            document.getElementById("Pesan").style.display = 'block'
           });
         }
       }).fail(function() {
         document.getElementById("IsiPesan").innerHTML = 'Query Tidak Valid'
-        document.getElementById("Pesan").style.display = 'block';;
+        document.getElementById("Pesan").style.display = 'block'
       })
       client.end()
     })
