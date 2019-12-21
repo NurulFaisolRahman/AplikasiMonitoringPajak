@@ -15,9 +15,9 @@ body {
       border-radius: 2px;
   }
 .login-form {
-  width: 360px;
+  width: 400px;
   margin: 0 auto;
-  padding: 170px 0 30px;
+  padding: 150px 0 30px;
 }
 .login-form form {
   color: #7a7a7a;

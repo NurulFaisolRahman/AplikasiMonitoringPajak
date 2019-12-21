@@ -1,40 +1,53 @@
-const {app, BrowserWindow, Menu, ipcMain} = require('electron')
+const {app, BrowserWindow, Tray, ipcMain} = require('electron')
 const url = require('url')
 const path = require('path')
+const Store = require('./renderer/store.js')
 
-// require('electron-reload')(__dirname)
+let mainWindow
+let tray
 
-let win
+// First instantiate the class
+const store = new Store({
+  configName: 'user-preferences',
+  defaults: {}
+});
+
+console.log(store.get('NPWPD'));
 
 function createWindow () {
 	const Layar = {
 	  width: 800,
-	  minWidth: 800,
 	  height: 600,
-		icon: `${__dirname}/icon.png`,
-	  webPreferences: {
-	    nodeIntegration: true
-	  }
+	  show:false,
+	  icon: `${__dirname}/icon.png`
 	}
 
 	mainWindow = new BrowserWindow(Layar)
+	let mainSession = mainWindow.webContents.session
     mainWindow.loadURL(path.join('file://', __dirname, '/renderer/main.html'))
-    mainWindow.on('closed', () => {
+    const IconTray = path.join(__dirname, 'icon.png')
+    tray = new Tray(IconTray)
+    tray.on('click', () => {
+    	if (mainWindow.isVisible()) {
+    		mainWindow.hide()
+    	} else {
+    		mainWindow.show()
+    	}
+    })
+
+    ipcMain.on('Sesi', (event, arg) => {
+    	store.set('NPWPD', 'Faisol');
+	})
+
+	mainWindow.on('closed', () => {
       mainWindow = null
     })
 }
 
-// Menu.setApplicationMenu(null);
 app.on('ready', () => {
 	createWindow()
 })
 
 app.on('window-all-closed', () => {
 	if (process.platform !== 'darwin') app.quit()
-})
-
-app.on('activate', () => {
-	if (mainWindow === null) {
-	  createWindow()
-	}
 })
