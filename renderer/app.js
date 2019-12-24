@@ -2,26 +2,49 @@ $ = require('jquery')
 const moment = require('moment')
 const CSVtoJSON = require('csvtojson')
 const schedule = require('node-schedule')
-const {ipcRenderer} = require('electron')
+const Store = require('./store.js')
+
+var SinyalOnline
+
+const store = new Store({
+  configName: 'Sesi',
+  defaults: {}
+});
 
 let time = moment()
 
 window.addEventListener('offline', () => {
-  alert('Internet Offline')
+  if (SinyalOnline != undefined) {
+    SinyalOnline.cancel()
+  }
+  document.getElementById("Alert").style.display = 'block'
+  console.log('stop')
+})
+
+window.addEventListener('online', () => {
+  document.getElementById("Alert").style.display = 'none'
+  SinyalOnline = schedule.scheduleJob('*/5 * * * * *', function(){
+    var Data = { NPWPD: store.get('NPWPD'), Sinyal: moment().format('YYYY-MM-DD HH:mm:ss') }
+    $.post(URL+"UpdateSinyal", Data)
+    console.log('sukses')
+  });
+  console.log('start')
 })
 
 $("#FormLogin").submit(function(e) {
     e.preventDefault();
 });
- 
-// schedule.scheduleJob('* */10 * * * *', function(){
-//   var Data = { NPWPD: '1507.199.615', Sinyal: moment().format('YYYY-MM-DD HH:mm:ss') }
-//   $.post(URL+"UpdateSinyal", Data)
-//   console.log('suskes')
-// });
 
 var URL = 'http://localhost/MonitoringPajak/Autentikasi/'
 // var URL = 'http://192.168.1.92/MonitoringPajak/Autentikasi/'
+
+if (store.get('NPWPD') != undefined) {
+  SinyalOnline = schedule.scheduleJob('*/5 * * * * *', function(){
+    var Data = { NPWPD: store.get('NPWPD'), Sinyal: moment().format('YYYY-MM-DD HH:mm:ss') }
+    $.post(URL+"UpdateSinyal", Data)
+    console.log('Sukses')
+  });
+}
 
 $('#Login').on('click', () => {
   if ($('#NPWPD').val() == '') {
@@ -39,7 +62,12 @@ $('#Login').on('click', () => {
         if (pesan == 'ok') {
           document.getElementById("Autentikasi").style.display = 'none'
           document.getElementById("JenisData").style.display = 'block'
-          ipcRenderer.send('Sesi', $('#NPWPD').val())
+          store.set('NPWPD', $('#NPWPD').val())
+          SinyalOnline = schedule.scheduleJob('*/5 * * * * *', function(){
+            var Data = { NPWPD: store.get('NPWPD'), Sinyal: moment().format('YYYY-MM-DD HH:mm:ss') }
+            $.post(URL+"UpdateSinyal", Data)
+            console.log('sukses')
+          });
         } else if(pesan == 'ko'){
           alert('NPWPD Tidak Terdaftar DiServer')
         } else if (pesan == 'fail') {
@@ -63,68 +91,72 @@ $('#Login').on('click', () => {
   }
 })
 
-// CSVtoJSON({delimiter:'auto'}).fromFile('../WajibPajak/DataWP.csv').then(data => {
-//   var DataWajibPajak = {}
-//   DataWajibPajak[NPWPD] = data
-//   $.post(URL+"InputTransaksiWajibPajak", JSON.stringify(DataWajibPajak))
-// })
-
-$('#text').on('click', () => {
-  var Data = { NPWPD: $('#NPWPD').val(), JenisData: 'text' }
+function SetJenisData(Sembunyi,Tampil,JenisData) {
+  var Data = { NPWPD: store.get('NPWPD'), JenisData: JenisData }
   $.post(URL+"UpdateJenisData", Data)
   document.getElementById("JenisData").style.display = 'none'
   document.getElementById("Uploadcsv").style.display = 'block'
+}
+
+$('#text').on('click', () => {
+  SetJenisData('JenisData','Uploadcsv','text')
 })
 
 $('#api').on('click', () => {
-  var Data = { NPWPD: $('#NPWPD').val(), JenisData: 'api' }
-  $.post(URL+"UpdateJenisData", Data)
-  document.getElementById("JenisData").style.display = 'none'
-  document.getElementById("Uploadapi").style.display = 'block'
+  SetJenisData('JenisData','Uploadapi','api')
 })
 
 $('#db').on('click', () => {
-  var Data = { NPWPD: $('#NPWPD').val(), JenisData: 'db' }
-  $.post(URL+"UpdateJenisData", Data)
-  document.getElementById("JenisData").style.display = 'none'
-  document.getElementById("Uploaddb").style.display = 'block'
+  SetJenisData('JenisData','Uploaddb','db')
 })
 
+function GantiData(Sembunyi,Tampil) {
+  document.getElementById(Sembunyi).style.display = 'none'
+  document.getElementById(Tampil).style.display = 'block'
+}
+
 $('#KembaliText').on('click', () => {
-  document.getElementById("Uploadcsv").style.display = 'none'
-  document.getElementById("JenisData").style.display = 'block'
+  GantiData('Uploadcsv','JenisData')
 })
 
 $('#KembaliApi').on('click', () => {
-  document.getElementById("Uploadapi").style.display = 'none'
-  document.getElementById("JenisData").style.display = 'block'
+  GantiData('Uploadapi','JenisData')
 })
 
 $('#KembaliDB').on('click', () => {
-  document.getElementById("Uploaddb").style.display = 'none'
-  document.getElementById("JenisData").style.display = 'block'
+  GantiData('Uploaddb','JenisData')
 })
 
-$('#LogOutText').on('click', () => {
+function SignOut(Sembunyi,Tampil) {
   document.getElementById("NPWPD").value = ''
   document.getElementById("Password").value = ''
-  document.getElementById("Uploadcsv").style.display = 'none'
-  document.getElementById("Autentikasi").style.display = 'block'
+  document.getElementById(Sembunyi).style.display = 'none'
+  document.getElementById(Tampil).style.display = 'block'
+}
+
+$('#LogOutText').on('click', () => {
+  SignOut('Uploadcsv','Autentikasi')
 })
 
 $('#LogOutApi').on('click', () => {
-  document.getElementById("NPWPD").value = ''
-  document.getElementById("Password").value = ''
-  document.getElementById("Uploadapi").style.display = 'none'
-  document.getElementById("Autentikasi").style.display = 'block'
+  SignOut('Uploadapi','Autentikasi')
 })
 
 $('#LogOutDB').on('click', () => {
-  document.getElementById("NPWPD").value = ''
-  document.getElementById("Password").value = ''
-  document.getElementById("Uploaddb").style.display = 'none'
-  document.getElementById("Autentikasi").style.display = 'block'
+  SignOut('Uploaddb','Autentikasi')
 })
+
+function GantiJenisText() {
+  var JenisText = document.getElementById("JenisText").value;
+  store.set('JenisText', JenisText)
+  store.set('IndexText', $("#JenisText")[0].selectedIndex)
+  CSVtoJSON({delimiter:'auto'}).fromFile('../WajibPajak/'+moment().format('DD-MM-YYYY')+'.'+JenisText).then(data => {
+    var DataWajibPajak = {}
+    DataWajibPajak[store.get('NPWPD')] = data
+    console.log(JSON.stringify(DataWajibPajak))
+    // $.post(URL+"InputTransaksiWajibPajak", JSON.stringify(DataWajibPajak))
+  })
+}
 
 $("#UploadText").click(function(){
  	var fileUpload = document.getElementById("DataCSV")

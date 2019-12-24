@@ -1,24 +1,15 @@
-const {app, BrowserWindow, Tray, ipcMain} = require('electron')
+const {app, BrowserWindow, Tray} = require('electron')
 const url = require('url')
 const path = require('path')
-const Store = require('./renderer/store.js')
 
 let mainWindow
 let tray
-
-// First instantiate the class
-const store = new Store({
-  configName: 'user-preferences',
-  defaults: {}
-});
-
-console.log(store.get('NPWPD'));
 
 function createWindow () {
 	const Layar = {
 	  width: 800,
 	  height: 600,
-	  show:false,
+	  // show:false,
 	  icon: `${__dirname}/icon.png`
 	}
 
@@ -34,10 +25,6 @@ function createWindow () {
     		mainWindow.show()
     	}
     })
-
-    ipcMain.on('Sesi', (event, arg) => {
-    	store.set('NPWPD', 'Faisol');
-	})
 
 	mainWindow.on('closed', () => {
       mainWindow = null

@@ -15,7 +15,8 @@
   			<img src="../avatar.png" alt="Avatar">
   		</div>
 			<br><br>
-			<div class="form-group" id="Autentikasi" style="display: block;">
+			<div class="alert alert-danger" role="alert" id="Alert" style="display: none;"><b>Internet Offline!</b></div>
+			<div class="form-group" id="Autentikasi" style="display: none;">
 	       		<input type="password" class="form-control text-center rounded-pill" id="NPWPD" placeholder="Input NPWPD" required>
 				 <br>
 				 <input type="password" class="form-control text-center rounded-pill" id="Password" placeholder="Input Password" required>
@@ -27,12 +28,20 @@
 				 <button class="btn btn-lg text-white bg-primary btn-block rounded-pill" id="api"><b>Web Servis</b></button>
 				 <button class="btn btn-lg text-white bg-warning btn-block rounded-pill" id="db"><b>Database</b></button>
 	    </div>
-			<div class="form-group" id="Uploadcsv" style="display: none;">
-        		<input type="file" class="form-control-file" id="DataCSV">
+			<div class="form-group" id="Uploadcsv" style="display: block;">
+        		<!-- <input type="file" class="form-control-file" id="DataCSV"> -->
+        		<div class="row">
+        			<div class="col d-flex justify-content-center">
+        				<select id="JenisText" onchange="GantiJenisText()">
+						  <option value="csv"><b>Data CSV</b></option>
+						  <option value="txt"><b>Data TXT</b></option>
+						</select>
+        			</div>
+        		</div>
 				<br>
-				<button class="btn btn-lg text-white btn-block rounded-pill" id="UploadText"><b>UPLOAD CSV</b></button>
-				<button class="btn btn-lg text-white btn-block rounded-pill" id="KembaliText"><b>GANTI DATA</b></button>
-				<button class="btn btn-lg text-white btn-block rounded-pill" id="LogOutText"><b>SIGN OUT</b></button>
+				<button class="btn btn-lg text-white bg-success btn-block rounded-pill" id="UploadText"><b>UPLOAD MANUAL</b></button>
+				<button class="btn btn-lg text-white bg-primary btn-block rounded-pill" id="KembaliText"><b>GANTI DATA</b></button>
+				<button class="btn btn-lg text-white bg-warning btn-block rounded-pill" id="LogOutText"><b>SIGN OUT</b></button>
       		</div>
 			<div class="form-group" id="Uploadapi" style="display: none;">
         <input type="text" class="form-control text-center rounded-pill" id="URLapi" placeholder="Input URL">
