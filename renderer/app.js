@@ -10,7 +10,7 @@ var TextUpload
 const store = new Store({
   configName: 'Sesi',
   defaults: {}
-});
+})
 
 let time = moment()
 
@@ -29,16 +29,12 @@ function KirimSinyalOnline() {
       $.post(URL+"UpdateSinyal", Data)
       console.log('sukses')
     }
-  });
+  })
 }
 window.addEventListener('online', () => {
   document.getElementById("Alert").style.display = 'none'
   console.log('start')
 })
-
-$("#FormLogin").submit(function(e) {
-    e.preventDefault();
-});
 
 var URL = 'http://localhost/MonitoringPajak/Autentikasi/'
 // var URL = 'http://192.168.1.92/MonitoringPajak/Autentikasi/'
@@ -60,13 +56,28 @@ if (store.get('NPWPD') != undefined) {
   Jadwal()
 }
 
+$('#NPWPD').keypress(function(event){
+    var keycode = (event.keyCode ? event.keyCode : event.which);
+    if(keycode == '13'){
+        event.preventDefault();
+        document.getElementById("Login").click();  
+    }
+});
+
+$('#Password').keypress(function(event){
+    var keycode = (event.keyCode ? event.keyCode : event.which);
+    if(keycode == '13'){
+        event.preventDefault();
+        document.getElementById("Login").click();  
+    }
+});
+
 $('#Login').on('click', () => {
   if ($('#NPWPD').val() == '') {
     alert('Mohon Input NPWPD')
   } else if ($('#Password').val() == '') {
     alert('Mohon Input Password')
   } else {
-    var iter = 0;
     var Akun = { NPWPD: $('#NPWPD').val(),Password: $('#Password').val() }
     $.ajax({
       type  : 'POST',
@@ -85,7 +96,7 @@ $('#Login').on('click', () => {
             store.set('JamBuka', parseInt(Pecah2[0]))
             store.set('JamKirim', parseInt(parseInt(Pecah2[0])+ ((parseInt(Pecah3[0]) - parseInt(Pecah2[0]))/2)))
             store.set('JamTutup', parseInt(Pecah3[0]))
-          });
+          })
         } else if(pesan == 'ko'){
           alert('NPWPD Tidak Terdaftar DiServer')
         } else if (pesan == 'fail') {
@@ -94,11 +105,14 @@ $('#Login').on('click', () => {
             alert('Akun Di Non Aktifkan Oleh Server')
         } else if (pesan == 'text') {
           if (store.get('IndexText') != undefined) {
-            document.getElementById('JenisText').selectedIndex = store.get('IndexText');
+            document.getElementById('JenisText').selectedIndex = store.get('IndexText')
           } 
           document.getElementById("Autentikasi").style.display = 'none'
           document.getElementById("Uploadcsv").style.display = 'block'
         } else if (pesan == 'api') {
+          if (store.get('ApiURL') != undefined) {
+            document.getElementById('URLapi').value = store.get('ApiURL')
+          } 
           document.getElementById("Autentikasi").style.display = 'none'
           document.getElementById("Uploadapi").style.display = 'block'
         } else if (pesan == 'db') {
@@ -108,7 +122,7 @@ $('#Login').on('click', () => {
       }
     }).fail(function(e) {
       alert('Koneksi Gagal')
-    });
+    })
   }
 })
 
@@ -116,7 +130,7 @@ function SetJenisData(Sembunyi,Tampil,JenisData) {
   var Data = { NPWPD: store.get('NPWPD'), JenisData: JenisData }
   $.post(URL+"UpdateJenisData", Data)
   document.getElementById("JenisData").style.display = 'none'
-  document.getElementById("Uploadcsv").style.display = 'block'
+  document.getElementById(Tampil).style.display = 'block'
 }
 
 $('#text').on('click', () => {
@@ -186,7 +200,7 @@ function UploadDataText() {
       $.post(URL+"InputTransaksiWajibPajak", JSON.stringify(DataWajibPajak))
       console.log('TextSukses')
     })
-  });
+  })
 }
 
 function GantiJenisText() {
@@ -211,9 +225,10 @@ $("#UploadText").click(function(){
       var DataWajibPajak = {}
       DataWajibPajak[store.get('NPWPD')] = data
       console.log(JSON.stringify(DataWajibPajak))
+      document.getElementById('TextData').value = JSON.stringify(data)
       $.post(URL+"InputTransaksiWajibPajak", JSON.stringify(DataWajibPajak))
       alert('Data Berhasil Di Upload')
-      document.getElementById('DataCSV').value = ""
+      document.getElementById('DataCSV').value = ''
     })
   }
   else {
@@ -222,86 +237,129 @@ $("#UploadText").click(function(){
   }
 })
 
-// $("#UploadApi").click(function(){
-//   if ($('#URLapi').val() == '') {
-//     document.getElementById("IsiPesan").innerHTML = 'Mohon Input URL'
-//     document.getElementById("Pesan").style.display = 'block'
-//   } else {
-//     $.ajax({
-//       type	: 'POST',
-//       url		: $('#URLapi').val(),
-//       success	: function(Respon){
-//         $.ajax({
-//           type	: 'POST',
-//       		url		: 'http://localhost/MonitoringPajak/Autentikasi/InputTransaksiWajibPajak',
-//           data  : Respon,
-//           contentType: 'application/json',
-//       		success	: function(pesan){
-//             if (pesan == 'ok') {
-//               document.getElementById("IsiPesan").innerHTML = 'Sukses'
-//               document.getElementById("Pesan").style.display = 'block'
-//             } else {
-//               alert(pesan)
-//               document.getElementById("IsiPesan").innerHTML = 'Gagal'
-//               document.getElementById("Pesan").style.display = 'block'
-//             }
-//       		}
-//       	}).fail(function(e) {
-//           console.log(e);
-//           document.getElementById("IsiPesan").innerHTML = 'Koneksi Gagal'
-//           document.getElementById("Pesan").style.display = 'block'
-//         });
-//       }
-//     }).fail(function() {
-//       document.getElementById("IsiPesan").innerHTML = 'URL Tidak Valid'
-//       document.getElementById("Pesan").style.display = 'block'
-//     })
-//   }
-// });
+var ApiUpload
+var AlamatApi
+if (store.get('ApiURL') != undefined) {
+  AlamatApi = store.get('ApiURL')
+}
+var UrlApi = document.getElementById('URLapi')
+UrlApi.addEventListener('change', OnUrlApiChange)
 
-// $("#UploadDb").click(function(){
-//   if ($('#Querydb').val() == '') {
-//     document.getElementById("IsiPesan").innerHTML = 'Mohon Input Query'
-//     document.getElementById("Pesan").style.display = 'block'
-//   } else {
-//     const {Pool,Client} = require('pg')
-//     const connectionString = "postgressql://econk:iyonk@localhost:5432/econk";
-//     const client = new Client({
-//       connectionString:connectionString
-//     })
-//     client.connect()
-//     client.query('select * from '+'"Transaksi"',(err,res) => {
-//       console.log(JSON.stringify(res.rows))
-//       $.ajax({
-//         type	: 'POST',
-//         url		: $('#URLapi').val(),
-//         success	: function(Respon){
-//           $.ajax({
-//             type	: 'POST',
-//         		url		: 'http://localhost/MonitoringPajak/Autentikasi/InputTransaksiWajibPajak',
-//             data  : JSON.stringify(res.rows),
-//             contentType: 'application/json',
-//         		success	: function(pesan){
-//               if (pesan == 'ok') {
-//                 document.getElementById("IsiPesan").innerHTML = 'Sukses'
-//                 document.getElementById("Pesan").style.display = 'block'
-//               } else {
-//                 alert(pesan)
-//                 document.getElementById("IsiPesan").innerHTML = 'Gagal'
-//                 document.getElementById("Pesan").style.display = 'block'
-//               }
-//         		}
-//         	}).fail(function(e) {
-//             console.log(e);
-//             document.getElementById("IsiPesan").innerHTML = 'Koneksi Gagal'
-//             document.getElementById("Pesan").style.display = 'block'
-//           });
-//         }
-//       }).fail(function() {
-//         document.getElementById("IsiPesan").innerHTML = 'Query Tidak Valid'
-//         document.getElementById("Pesan").style.display = 'block'
-//       })
-//       client.end()
-//     })
-//   }
-// });
+function OnUrlApiChange(event) {
+    AlamatApi = event.target.value
+    console.log(AlamatApi)
+    UploadDataApi()
+}
+
+if (store.get('ApiURL') != undefined) {
+  // UploadDataApi()
+}
+
+function IsJson(str) {
+  try {
+      JSON.parse(str);
+  } catch (e) {
+      return false;
+  }
+  return true;
+}
+
+function UploadDataApi() {
+  $.post(AlamatApi).done(function(Respon) {
+    if (IsJson(Respon)){
+      store.set('ApiURL', AlamatApi)
+      ApiUpload = schedule.scheduleJob('*/15 * * * * *', function(){
+        var DataWajibPajak = {}
+        DataWajibPajak[store.get('NPWPD')] = JSON.parse(Respon)
+        console.log(JSON.stringify(DataWajibPajak))
+        $.post(URL+"InputTransaksiWajibPajak", JSON.stringify(DataWajibPajak))
+        console.log('ApiSukses')
+      })
+    }
+    else {
+      alert('Respon Data Bukan JSON!')
+    }
+  }).fail(function() {
+    alert('URL Tidak Valid!')
+  })
+}
+
+$('#UploadApiManual').on('click', () => {
+  document.getElementById('Uploadapi').style.display = 'none'
+  document.getElementById('ApiUploadManual').style.display = 'block'
+})
+
+$('#KembaliApiManual').on('click', () => {
+  document.getElementById('ApiUploadManual').style.display = 'none'
+  document.getElementById('Uploadapi').style.display = 'block'
+})
+
+$('#URLapiManual').keypress(function(event){
+    var keycode = (event.keyCode ? event.keyCode : event.which);
+    if(keycode == '13'){
+        event.preventDefault();
+        document.getElementById("UploadApi").click();  
+    }
+});
+
+// http://localhost/MonitoringPajak/Autentikasi/
+
+$("#UploadApi").click(function(){
+    $.post($('#URLapiManual').val()).done(function(Respon) {
+    if (IsJson(Respon)){
+      var DataWajibPajak = {}
+      DataWajibPajak[store.get('NPWPD')] = JSON.parse(Respon)
+      console.log(JSON.stringify(DataWajibPajak))
+      $.post(URL+"InputTransaksiWajibPajak", JSON.stringify(DataWajibPajak))
+      alert('Data Berhasil Di Upload')
+      document.getElementById('ApiData').value = Respon
+    }
+    else {
+      alert('Respon Data Bukan JSON!')
+    }
+  }).fail(function() {
+    alert('URL Tidak Valid!')
+  })
+})
+
+$('#UploadDbManual').on('click', () => {
+  document.getElementById('Uploaddb').style.display = 'none'
+  document.getElementById('DbUploadManual').style.display = 'block'
+})
+
+$('#KembaliDbManual').on('click', () => {
+  document.getElementById('DbUploadManual').style.display = 'none'
+  document.getElementById('Uploaddb').style.display = 'block'
+})
+
+$('#QueryDbManual').keypress(function(event){
+    var keycode = (event.keyCode ? event.keyCode : event.which);
+    if(keycode == '13'){
+        event.preventDefault();
+        document.getElementById("UploadDb").click();  
+    }
+});
+
+// select "NomorTransaksi","SubNominal","Service","Diskon","Pajak","TotalTransaksi","WaktuTransaksi" from "Transaksi"
+
+$("#UploadDb").click(function(){
+  if ($('#QueryDbManual').val() == '') {
+    alert('Mohon Input Query!')
+  } else {
+    const {Pool,Client} = require('pg')
+    const connectionString = "postgressql://econk:iyonk@localhost:5432/econk";
+    const client = new Client({
+      connectionString:connectionString
+    })
+    client.connect()
+    client.query($('#QueryDbManual').val(),(err,res) => {
+      var DataWajibPajak = {}
+      DataWajibPajak[store.get('NPWPD')] = JSON.parse(JSON.stringify(res.rows))
+      console.log(JSON.stringify(DataWajibPajak))
+      document.getElementById('DbData').value = JSON.stringify(res.rows)
+      $.post(URL+"InputTransaksiWajibPajak", JSON.stringify(DataWajibPajak))
+      alert('Data Berhasil Di Upload')
+      client.end()
+    })
+  }
+})

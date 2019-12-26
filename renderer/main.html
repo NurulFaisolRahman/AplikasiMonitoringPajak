@@ -9,8 +9,8 @@
 <link rel="stylesheet" href="SignIn.css">
 </head>
 <body>
-	<div class="login-form" id=SignIn>
-    <form id="FormLogin" class="border border-danger">
+	<div class="login-form">
+    <form onsubmit="event.preventDefault();" class="border border-danger">
   		<div class="avatar">
   			<img src="../avatar.png" alt="Avatar">
   		</div>
@@ -29,69 +29,81 @@
 				 <button class="btn btn-lg text-white bg-warning btn-block rounded-pill" id="db"><b>Database</b></button>
 	    </div>
 			<div class="form-group" id="Uploadcsv" style="display: none;">
-        		<div class="row">
-        			<div class="col d-flex justify-content-center">
-        				<select id="JenisText" onchange="GantiJenisText()">
+        		<div class="row mb-1">
+        			<div class="col-6 mx-auto">
+        				<select class="form-control btn-light" id="JenisText" onchange="GantiJenisText()">
 						  <option value="csv"><b>Data CSV</b></option>
 						  <option value="txt"><b>Data TXT</b></option>
 						</select>
         			</div>
         		</div>
-				<br>
-				<button class="btn btn-lg text-white bg-success btn-block rounded-pill" id="UploadTextManual"><b>UPLOAD MANUAL</b></button>
-				<button class="btn btn-lg text-white bg-primary btn-block rounded-pill" id="KembaliText"><b>GANTI DATA</b></button>
-				<button class="btn btn-lg text-white bg-warning btn-block rounded-pill" id="LogOutText"><b>SIGN OUT</b></button>
+				<button class="btn mb-1 text-white bg-success btn-block rounded-pill" id="UploadTextManual"><b>UPLOAD MANUAL</b></button>
+				<button class="btn mb-1 text-white bg-primary btn-block rounded-pill" id="KembaliText"><b>GANTI DATA</b></button>
+				<button class="btn mb-1 text-white bg-warning btn-block rounded-pill" id="LogOutText"><b>SIGN OUT</b></button>
       		</div>
       		<div class="form-group" id="TextUploadManual" style="display: none;">
-        		<input type="file" class="form-control-file" id="DataCSV">
-				<br>
-				<button class="btn btn-lg text-white bg-success btn-block rounded-pill" id="UploadText"><b>UPLOAD</b></button>
-				<button class="btn btn-lg text-white bg-primary btn-block rounded-pill" id="KembaliTextManual"><b>KEMBALI</b></button>
+        		<input type="file" class="form-control-file mb-1" id="DataCSV">
+				<button class="btn mb-1 text-white bg-success btn-block rounded-pill" id="UploadText"><b>UPLOAD</b></button>
+				<button class="btn mb-1 text-white bg-primary btn-block rounded-pill" id="KembaliTextManual"><b>KEMBALI</b></button>
+				<textarea rows="10" id="TextData" cols="53"></textarea>
       		</div>
 			<div class="form-group" id="Uploadapi" style="display: none;">
-        <input type="text" class="form-control text-center rounded-pill" id="URLapi" placeholder="Input URL">
-				<br>
-				<table>
-					<tr>
-						<td>
-							<button class="btn btn-sm text-white btn-block rounded-pill" id="UploadApi"><b style="font-size: 12px;">UPLOAD DATA</b></button>
-						</td>
-						<td>
-							<button class="btn btn-sm text-white btn-block rounded-pill" id="KembaliApi"><b style="font-size: 12px;">GANTI DATA</b></button>
-						</td>
-						<td>
-							<button class="btn btn-sm text-white btn-block rounded-pill" id="LogOutApi"><b style="font-size: 12px;">SIGN OUT</b></button>
-						</td>
-					</tr>
-				</table>
-      </div>
+        		<input type="text" class="form-control mb-1 text-center rounded-pill" id="URLapi" placeholder="Input URL">
+				<button class="btn mb-1 text-white bg-success btn-block rounded-pill" id="UploadApiManual"><b>UPLOAD MANUAL</b></button>
+				<button class="btn mb-1 text-white bg-primary btn-block rounded-pill" id="KembaliApi"><b>GANTI DATA</b></button>
+				<button class="btn mb-1 text-white bg-warning btn-block rounded-pill" id="LogOutApi"><b>SIGN OUT</b></button>
+      		</div>
+			<div class="form-group" id="ApiUploadManual" style="display: none;">
+        		<input type="text" class="form-control mb-1 text-center rounded-pill" id="URLapiManual" placeholder="Input URL">
+				<button class="btn mb-1 text-white bg-success btn-block rounded-pill" id="UploadApi"><b>UPLOAD</b></button>
+				<button class="btn mb-1 text-white bg-primary btn-block rounded-pill" id="KembaliApiManual"><b>KEMBALI</b></button>
+				<textarea rows="7" id="ApiData" cols="53"></textarea>
+      		</div>
 			<div class="form-group" id="Uploaddb" style="display: none;">
-				<select class="form-control btn-light" name="JenisDB">
-        	<option value="0">Postgre</option>
-					<option value="1">MySQL</option>
-					<option value="2">SQL Server</option>
-					<option value="3">Oracle</option>
-					<option value="4">Firebird</option>
-					<option value="5">DB2</option>
-				</select>
-				<br>
-        <input type="text" class="form-control text-center rounded-pill" id="Querydb" placeholder="Input Query">
-				<br>
-				<table>
-					<tr>
-						<td>
-							<button class="btn btn-sm text-white btn-block rounded-pill" id="UploadDb"><b style="font-size: 12px;">UPLOAD DATA</b></button>
-						</td>
-						<td>
-							<button class="btn btn-sm text-white btn-block rounded-pill" id="KembaliDB"><b style="font-size: 12px;">GANTI DATA</b></button>
-						</td>
-						<td>
-							<button class="btn btn-sm text-white btn-block rounded-pill" id="LogOutDB"><b> style="font-size: 12px;"SIGN OUT</b></button>
-						</td>
-					</tr>
-				</table>
-      </div>
-    </form>
+				<div class="row mb-1">
+        			<div class="col-6 mx-auto">
+        				<select class="form-control btn-light" id="JenisDB">
+		        			<option value="Postgre">Postgre</option>
+							<option value="MySQL">MySQL</option>
+							<option value="SQLServer">SQL Server</option>
+							<option value="Oracle">Oracle</option>
+							<option value="Firebird">Firebird</option>
+							<option value="DB2">DB2</option>
+						</select>
+        			</div>
+        		</div>
+				<div class="row mb-1">
+        			<input type="text" class="form-control text-center rounded-pill" id="Querydb" placeholder="Input Query">
+				</div>
+				<div class="row mb-1">
+					<div class="col-6">
+						<input type="text" class="form-control text-center rounded-pill" id="Server" placeholder="Server">
+					</div>
+					<div class="col-6">
+						<input type="text" class="form-control text-center rounded-pill" id="NamaDB" placeholder="Nama DB">
+					</div>
+				</div>
+				<div class="row mb-1">
+					<div class="col-6">
+						<input type="text" class="form-control text-center rounded-pill" id="UsernameDB" placeholder="Username">
+					</div>
+					<div class="col-6">
+						<input type="text" class="form-control text-center rounded-pill" id="PasswordDB" placeholder="Username">
+					</div>
+				</div>
+				<button class="btn mb-1 text-white bg-success btn-block rounded-pill" id="UploadDbManual"><b>UPLOAD MANUAL</b></button>
+				<button class="btn mb-1 text-white bg-primary btn-block rounded-pill" id="KembaliDB"><b>GANTI DATA</b></button>
+				<button class="btn mb-1 text-white bg-warning btn-block rounded-pill" id="LogOutDB"><b>SIGN OUT</b></button>
+     		</div>
+  			<div class="form-group" id="DbUploadManual" style="display: none;">
+  				<div class="row mb-1">
+        			<input type="text" class="form-control text-center rounded-pill" id="QueryDbManual" placeholder="Input Query">
+				</div>
+        		<button class="btn mb-1 text-white bg-success btn-block rounded-pill" id="UploadDb"><b>UPLOAD</b></button>
+				<button class="btn mb-1 text-white bg-primary btn-block rounded-pill" id="KembaliDbManual"><b>KEMBALI</b></button>
+				<textarea rows="10" id="DbData" cols="53"></textarea>
+      		</div>
+    	</form>
 	</div>
 	<script type="text/javascript" src="./app.js"></script>
 </body>
