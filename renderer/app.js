@@ -19,9 +19,13 @@ window.addEventListener('offline', () => {
   }
   document.getElementById("Alert").style.display = 'block'
   console.log('Internet Offline')
-  if (store.get('JenisData') == 'api') {
+  if (store.get('JenisData') == 'api' && ApiUpload != undefined) {
     ApiUpload.cancel()
     console.log('ApiUpload Cancelled')
+  }
+  if (store.get('JenisData') == 'db' && DBUpload != undefined) {
+    DBUpload.cancel()
+    console.log('DBUpload Cancelled')
   }
 })
 
@@ -33,6 +37,10 @@ window.addEventListener('online', () => {
   if (store.get('JenisData') == 'api') {
     UploadDataApi()
     console.log('ApiUpload Started')
+  }
+  if (store.get('JenisData') == 'db') {
+    UploadDataDB()
+    console.log('DBUpload Started')
   }
 })
 
@@ -337,11 +345,6 @@ $("#UploadApi").click(function(){
   })
 })
 
-if (store.get('JenisData') == 'db') {
-  Jadwal()
-  // UploadDataDB()
-}
-
 var DBUpload
 
 if (store.get('JenisData') == 'db') {
@@ -353,6 +356,7 @@ $('#db').on('click', () => {
   SetJenisData('JenisData','Uploaddb','db')
   store.set('JenisData', 'db')
   Jadwal()
+  UploadDataDB()
 })
 
 $('#PasswordDB').keypress(function(event){
@@ -527,6 +531,10 @@ $('#KembaliApi').on('click', () => {
 })
 
 $('#KembaliDB').on('click', () => {
+  if (DBUpload != undefined) {
+    DBUpload.cancel()
+    console.log('DBUpload Cancelled')
+  }
   GantiData('Uploaddb','JenisData')
 })
 
