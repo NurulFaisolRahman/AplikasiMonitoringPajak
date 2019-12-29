@@ -9,7 +9,6 @@ function createWindow () {
 	const Layar = {
 	  width: 820,
 	  height: 620,
-	  // show:false,
 	  icon: `${__dirname}/icon.png`
 	}
 
@@ -26,9 +25,15 @@ function createWindow () {
     	}
     })
 
-	mainWindow.on('closed', () => {
-      mainWindow = null
-    })
+    mainWindow.on('minimize',function(event){
+        event.preventDefault();
+        mainWindow.hide();
+    });
+
+    // mainWindow.on('blur',function(event){
+    //     event.preventDefault();
+    //     mainWindow.hide();
+    // });
 }
 
 app.on('ready', () => {
