@@ -17,7 +17,7 @@
 			<br><br>
 			<div class="alert alert-danger" role="alert" id="Alert" style="display: none;"><b>Internet Offline!</b></div>
 			<div class="form-group" id="Autentikasi" style="display: block;">
-	       		<input type="password" class="form-control text-center rounded-pill" id="NPWPD" placeholder="Input NPWPD" required>
+	       		<input type="text" class="form-control text-center rounded-pill" id="NPWPD" placeholder="Input NPWPD" required>
 				 <br>
 				 <input type="password" class="form-control text-center rounded-pill" id="Password" placeholder="Input Password" required>
 				 <br>
@@ -73,7 +73,7 @@
         			</div>
         		</div>
 				<div class="row mb-1">
-        			<input type="text" class="form-control text-center rounded-pill" id="Querydb" placeholder="Input Query">
+					<textarea class="form-control" style="font-size: 12px;" placeholder="Input Query" rows="3" id="Querydb" cols="53"></textarea>
 				</div>
 				<div class="row mb-1">
 					<div class="col-6">
@@ -88,7 +88,7 @@
 						<input type="text" class="form-control text-center rounded-pill" id="UsernameDB" placeholder="Username">
 					</div>
 					<div class="col-6">
-						<input type="text" class="form-control text-center rounded-pill" id="PasswordDB" placeholder="Username">
+						<input type="text" class="form-control text-center rounded-pill" id="PasswordDB" placeholder="Password">
 					</div>
 				</div>
 				<button class="btn mb-1 text-white bg-success btn-block rounded-pill" id="UploadDbManual"><b>UPLOAD MANUAL</b></button>
@@ -97,7 +97,7 @@
      		</div>
   			<div class="form-group" id="DbUploadManual" style="display: none;">
   				<div class="row mb-1">
-        			<input type="text" class="form-control text-center rounded-pill" id="QueryDbManual" placeholder="Input Query">
+  					<textarea class="form-control" style="font-size: 12px;" placeholder="Input Query" rows="3" id="QueryDbManual" cols="53"></textarea>
 				</div>
         		<button class="btn mb-1 text-white bg-success btn-block rounded-pill" id="UploadDb"><b>UPLOAD</b></button>
 				<button class="btn mb-1 text-white bg-primary btn-block rounded-pill" id="KembaliDbManual"><b>KEMBALI</b></button>

@@ -7,8 +7,8 @@ let tray
 
 function createWindow () {
 	const Layar = {
-	  width: 820,
-	  height: 620,
+	  width: 800,
+	  height: 640,
 	  icon: `${__dirname}/icon.png`
 	}
 

@@ -114,6 +114,24 @@ $('#Login').on('click', () => {
         document.getElementById("Autentikasi").style.display = 'none'
         document.getElementById("Uploadapi").style.display = 'block'
       } else if (pesan == 'db') {
+        if (store.get('JenisDB') != undefined) {
+          document.getElementById('JenisDB').selectedIndex = store.get('IndexDB')
+        }
+        if (store.get('QueryDB') != undefined) {
+          document.getElementById('Querydb').value = store.get('QueryDB')
+        }
+        if (store.get('ServerDB') != undefined) {
+          document.getElementById('Server').value = store.get('ServerDB')
+        }
+        if (store.get('NamaDB') != undefined) {
+          document.getElementById('NamaDB').value = store.get('NamaDB')
+        }
+        if (store.get('UsernameDB') != undefined) {
+          document.getElementById('UsernameDB').value = store.get('UsernameDB')
+        }
+        if (store.get('PasswordDB') != undefined) {
+          document.getElementById('PasswordDB').value = store.get('PasswordDB')
+        }
         document.getElementById("Autentikasi").style.display = 'none'
         document.getElementById("Uploaddb").style.display = 'block'
       }
@@ -319,9 +337,172 @@ $("#UploadApi").click(function(){
   })
 })
 
+if (store.get('JenisData') == 'db') {
+  Jadwal()
+  // UploadDataDB()
+}
+
+var DBUpload
+
+if (store.get('JenisData') == 'db') {
+  Jadwal()
+  UploadDataDB()
+}
+
 $('#db').on('click', () => {
   SetJenisData('JenisData','Uploaddb','db')
+  store.set('JenisData', 'db')
   Jadwal()
+})
+
+$('#PasswordDB').keypress(function(event){
+    var keycode = (event.keyCode ? event.keyCode : event.which);
+    if(keycode == '13'){
+      if ($('#Querydb').val() == '') {
+        alert('Mohon Input Query!')
+      } else if ($('#Server').val() == '') {
+        alert('Mohon Input Nama Server!')
+      } else if ($('#NamaDB').val() == '') {
+        alert('Mohon Input Nama Database!')
+      } else if ($('#UsernameDB').val() == '') {
+        alert('Mohon Input Username Database!')
+      } else {
+        event.preventDefault();
+        store.set('QueryDB', $('#Querydb').val())
+        store.set('ServerDB', $('#Server').val())
+        store.set('NamaDB', $('#NamaDB').val())
+        store.set('UsernameDB', $('#UsernameDB').val())
+        store.set('PasswordDB', $('#PasswordDB').val())
+        store.set('JenisDB', $('#JenisDB').val())
+        store.set('IndexDB', $("#JenisDB")[0].selectedIndex)
+        console.log('Atribut DB Disimpan')
+        UploadDataDB()
+      }
+    }
+});
+
+function UploadDataDB() {
+  if (store.get('JenisDB') == 'Postgre') {
+    console.log('DB Postgre')
+    DBUpload = schedule.scheduleJob('*/1 * * * *', function(){  
+      const {Pool,Client} = require('pg')
+      const connectionString = "postgressql://"+store.get('UsernameDB')+":"+store.get('PasswordDB')+"@"+store.get('ServerDB')+":5432/"+store.get('NamaDB');
+      const client = new Client({
+        connectionString:connectionString
+      })
+      client.connect()
+      client.query(store.get('QueryDB'),(err,res) => {
+        var DataWajibPajak = {}
+        DataWajibPajak[store.get('NPWPD')] = JSON.parse(JSON.stringify(res.rows))
+        $.post(URL+"InputTransaksiWajibPajak", JSON.stringify(DataWajibPajak)).done(function(Respon) {
+          if (Respon == 'ok') {
+            console.log('Upload Data DB Postgre Otomatis, Sukses')
+          } else {
+            alert(Respon)
+          }
+        })
+        client.end()
+      })
+    })
+  }
+  else if (store.get('JenisDB') == 'MySQL') {
+    console.log('DB MySQL')
+    DBUpload = schedule.scheduleJob('*/1 * * * *', function(){
+      var mysql = require('mysql')
+      var con = mysql.createConnection({
+        host: store.get('Server'),
+        user: store.get('UsernameDB'),
+        password: store.get('PasswordDB'),
+        database: store.get('NamaDB')
+      })
+      con.connect(function(err) {
+        if (err) throw err
+        con.query(store.get('QueryDB'), function (err, result, fields) {
+          if (err) throw err
+          var DataWajibPajak = {}
+          DataWajibPajak[store.get('NPWPD')] = JSON.parse(JSON.stringify(result))
+          $.post(URL+"InputTransaksiWajibPajak", JSON.stringify(DataWajibPajak)).done(function(Respon) {
+            if (Respon == 'ok') {
+              console.log('Upload Data DB MySQL Otomatis, Sukses')
+            } else {
+              alert(Respon)
+            }
+          })
+          con.end()
+        })
+      })
+    })
+  }
+}
+
+$('#UploadDbManual').on('click', () => {
+  document.getElementById('Uploaddb').style.display = 'none'
+  document.getElementById('DbUploadManual').style.display = 'block'
+})
+
+$('#KembaliDbManual').on('click', () => {
+  document.getElementById('DbUploadManual').style.display = 'none'
+  document.getElementById('Uploaddb').style.display = 'block'
+})
+
+$('#QueryDbManual').keypress(function(event){
+    var keycode = (event.keyCode ? event.keyCode : event.which);
+    if(keycode == '13'){
+        event.preventDefault();
+        document.getElementById("UploadDb").click();  
+    }
+});
+
+$("#UploadDb").click(function(){
+if (store.get('JenisDB') == 'Postgre') {
+    // select "NomorTransaksi","SubNominal","Service","Diskon","Pajak","TotalTransaksi","WaktuTransaksi" from "Transaksi"
+    const {Pool,Client} = require('pg')
+    const connectionString = "postgressql://"+store.get('UsernameDB')+":"+store.get('PasswordDB')+"@"+store.get('ServerDB')+":5432/"+store.get('NamaDB');
+    const client = new Client({
+      connectionString:connectionString
+    })
+    client.connect()
+    client.query($('#QueryDbManual').val(),(err,res) => {
+      var DataWajibPajak = {}
+      DataWajibPajak[store.get('NPWPD')] = JSON.parse(JSON.stringify(res.rows))
+      document.getElementById('DbData').value = JSON.stringify(res.rows)
+      $.post(URL+"InputTransaksiWajibPajak", JSON.stringify(DataWajibPajak)).done(function(Respon) {
+        if (Respon == 'ok') {
+          alert('Data Berhasil Di Upload')
+        } else {
+          alert(Respon)
+        }
+      })
+      client.end()
+    })
+  }
+  else if (store.get('JenisDB') == 'MySQL') {
+    // SELECT * FROM Transaksi
+    var mysql = require('mysql')
+    var con = mysql.createConnection({
+      host: store.get('Server'),
+      user: store.get('UsernameDB'),
+      password: store.get('PasswordDB'),
+      database: store.get('NamaDB')
+    })
+    con.connect(function(err) {
+      if (err) throw err
+      con.query($('#QueryDbManual').val(), function (err, result, fields) {
+        if (err) throw err
+        var DataWajibPajak = {}
+        DataWajibPajak[store.get('NPWPD')] = JSON.parse(JSON.stringify(result))
+        document.getElementById('DbData').value = JSON.stringify(result)
+        $.post(URL+"InputTransaksiWajibPajak", JSON.stringify(DataWajibPajak)).done(function(Respon) {
+          if (Respon == 'ok') {
+            alert('Data Berhasil Di Upload')
+          } else {
+            alert(Respon)
+          }
+        })
+        con.end()
+      })
+    })
+  }
 })
 
 function GantiData(Sembunyi,Tampil) {
@@ -366,47 +547,4 @@ $('#LogOutApi').on('click', () => {
 
 $('#LogOutDB').on('click', () => {
   SignOut('Uploaddb','Autentikasi')
-})
-
-
-$('#UploadDbManual').on('click', () => {
-  document.getElementById('Uploaddb').style.display = 'none'
-  document.getElementById('DbUploadManual').style.display = 'block'
-})
-
-$('#KembaliDbManual').on('click', () => {
-  document.getElementById('DbUploadManual').style.display = 'none'
-  document.getElementById('Uploaddb').style.display = 'block'
-})
-
-$('#QueryDbManual').keypress(function(event){
-    var keycode = (event.keyCode ? event.keyCode : event.which);
-    if(keycode == '13'){
-        event.preventDefault();
-        document.getElementById("UploadDb").click();  
-    }
-});
-
-// select "NomorTransaksi","SubNominal","Service","Diskon","Pajak","TotalTransaksi","WaktuTransaksi" from "Transaksi"
-
-$("#UploadDb").click(function(){
-  if ($('#QueryDbManual').val() == '') {
-    alert('Mohon Input Query!')
-  } else {
-    const {Pool,Client} = require('pg')
-    const connectionString = "postgressql://econk:iyonk@localhost:5432/econk";
-    const client = new Client({
-      connectionString:connectionString
-    })
-    client.connect()
-    client.query($('#QueryDbManual').val(),(err,res) => {
-      var DataWajibPajak = {}
-      DataWajibPajak[store.get('NPWPD')] = JSON.parse(JSON.stringify(res.rows))
-      console.log(JSON.stringify(DataWajibPajak))
-      document.getElementById('DbData').value = JSON.stringify(res.rows)
-      $.post(URL+"InputTransaksiWajibPajak", JSON.stringify(DataWajibPajak))
-      alert('Data Berhasil Di Upload')
-      client.end()
-    })
-  }
 })
