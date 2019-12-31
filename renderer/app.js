@@ -4,7 +4,8 @@ const CSVtoJSON = require('csvtojson')
 const schedule = require('node-schedule')
 const Store = require('./store.js')
 
-var URL = 'http://localhost/MonitoringPajak/Autentikasi/'
+// var URL = 'http://localhost/MonitoringPajak/Autentikasi/'
+var URL = 'http://192.168.43.223/MonitoringPajak/Autentikasi/'
 var SinyalOnline
 
 const store = new Store({
@@ -437,6 +438,42 @@ function UploadDataDB() {
       })
     })
   }
+  else if (store.get('JenisDB') == 'SQLServer') {
+    console.log('DB SQLServer')
+    DBUpload = schedule.scheduleJob('*/1 * * * *', function(){
+      var sql = require('mssql')
+      var Config = {
+        server : store.get('ServerDB'),
+        user: store.get('UsernameDB'),
+        password: store.get('PasswordDB'),
+        database: store.get('NamaDB'),
+        port: 1433,
+        option: {
+          encrypt: false
+        }
+      }
+
+      var con = new sql.ConnectionPool(Config)
+      con.connect(function (err){
+        if (err) throw err;
+        console.log('connect')
+        var req = new sql.Request(con);
+        req.query(store.get('QueryDB'), function(err, result){
+          if (err) throw err;
+          var DataWajibPajak = {}
+          DataWajibPajak[store.get('NPWPD')] = JSON.parse(JSON.stringify(result.recordset))
+          $.post(URL+"InputTransaksiWajibPajak", JSON.stringify(DataWajibPajak)).done(function(Respon) {
+            if (Respon == 'ok') {
+              console.log('Upload Data DB SQLServer Otomatis, Sukses')
+            } else {
+              alert(Respon)
+            }
+          })
+          con.close()
+        })
+      })
+    })
+  }
 }
 
 $('#UploadDbManual').on('click', () => {
@@ -474,7 +511,7 @@ if (store.get('JenisDB') == 'Postgre') {
         if (Respon == 'ok') {
           alert('Data Berhasil Di Upload')
         } else {
-          alert(Respon)
+          alert('Data Gagal Di Upload')
         }
       })
       client.end()
@@ -500,10 +537,45 @@ if (store.get('JenisDB') == 'Postgre') {
           if (Respon == 'ok') {
             alert('Data Berhasil Di Upload')
           } else {
-            alert(Respon)
+            alert('Data Gagal Di Upload')
           }
         })
         con.end()
+      })
+    })
+  }
+  else if (store.get('JenisDB') == 'SQLServer') {
+    // select * from Transaksi
+    var sql = require('mssql')
+    var Config = {
+      server : store.get('ServerDB'),
+      user: store.get('UsernameDB'),
+      password: store.get('PasswordDB'),
+      database: store.get('NamaDB'),
+      port: 1433,
+      option: {
+        encrypt: false
+      }
+    }
+
+    var con = new sql.ConnectionPool(Config)
+    con.connect(function (err){
+      if (err) throw err;
+      console.log('connect')
+      var req = new sql.Request(con);
+      req.query($('#QueryDbManual').val(), function(err, result){
+        if (err) throw err;
+        var DataWajibPajak = {}
+        DataWajibPajak[store.get('NPWPD')] = JSON.parse(JSON.stringify(result.recordset))
+        document.getElementById('DbData').value = JSON.stringify(result.recordset)
+        $.post(URL+"InputTransaksiWajibPajak", JSON.stringify(DataWajibPajak)).done(function(Respon) {
+          if (Respon == 'ok') {
+            alert('Data Berhasil Di Upload')
+          } else {
+            alert('Data Gagal Di Upload')
+          }
+        })
+        con.close()
       })
     })
   }
