@@ -15,7 +15,7 @@ function createWindow () {
 	mainWindow = new BrowserWindow(Layar)
 	let mainSession = mainWindow.webContents.session
     mainWindow.loadURL(path.join('file://', __dirname, '/renderer/main.html'))
-    const IconTray = path.join(__dirname, 'icon.ico')
+    const IconTray = path.join(__dirname, 'favicon.png')
     tray = new Tray(IconTray)
     tray.on('click', () => {
     	if (mainWindow.isVisible()) {

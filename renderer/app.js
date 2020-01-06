@@ -4,8 +4,8 @@ const CSVtoJSON = require('csvtojson')
 const schedule = require('node-schedule')
 const Store = require('./store.js')
 
-// var URL = 'http://localhost/MonitoringPajak/Autentikasi/'
-var URL = 'http://192.168.43.223/MonitoringPajak/Autentikasi/'
+var URL = 'http://localhost/MonitoringPajak/Autentikasi/'
+// var URL = 'http://192.168.43.223/MonitoringPajak/Autentikasi/'
 var SinyalOnline
 
 const store = new Store({
