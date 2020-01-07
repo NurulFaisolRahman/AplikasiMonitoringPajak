@@ -380,7 +380,7 @@ $('#PasswordDB').keypress(function(event){
         store.set('PasswordDB', $('#PasswordDB').val())
         store.set('JenisDB', $('#JenisDB').val())
         store.set('IndexDB', $("#JenisDB")[0].selectedIndex)
-        console.log('Atribut DB Disimpan')
+        console.log('Konfigurasi Database Disimpan')
         UploadDataDB()
       }
     }
@@ -456,7 +456,6 @@ function UploadDataDB() {
       var con = new sql.ConnectionPool(Config)
       con.connect(function (err){
         if (err) throw err;
-        console.log('connect')
         var req = new sql.Request(con);
         req.query(store.get('QueryDB'), function(err, result){
           if (err) throw err;
@@ -472,6 +471,46 @@ function UploadDataDB() {
           con.close()
         })
       })
+    })
+  }
+  else if (store.get('JenisDB') == 'Firebird') {
+    // /home/econk/Desktop/wp.fdb
+    // SELECT * FROM Transaksi
+    DBUpload = schedule.scheduleJob('*/1 * * * *', function(){
+      var Firebird = require('node-firebird');
+      var options = {};
+       
+      options.host = store.get('ServerDB');
+      options.port = 3050;
+      options.database = store.get('NamaDB');
+      options.user = store.get('UsernameDB');
+      options.password = store.get('PasswordDB');
+      options.lowercase_keys = false; // set to true to lowercase keys
+      options.role = null;            // default
+      options.pageSize = 4096;        // default when creating database
+      Firebird.attach(options, function(err, db) {
+          if (err)
+              throw err;
+          db.query(store.get('QueryDB'), function(err, result) {
+              Object.keys(result).forEach(function (item) {
+                Object.keys(result[item]).forEach(function (key) {
+                  result[item][key] = result[item][key].toString();
+                });
+              });
+              var DataWajibPajak = {}
+              DataWajibPajak[store.get('NPWPD')] = JSON.parse(JSON.stringify(result))
+              console.log(DataWajibPajak)
+              document.getElementById('DbData').value = JSON.stringify(result)
+              $.post(URL+"InputTransaksiWajibPajak", JSON.stringify(DataWajibPajak)).done(function(Respon) {
+                if (Respon == 'ok') {
+                  console.log('Upload Data DB Firebird Otomatis, Sukses')
+                } else {
+                  alert(Respon)
+                }
+              })
+              db.detach();
+          });
+      });
     })
   }
 }
@@ -578,6 +617,45 @@ if (store.get('JenisDB') == 'Postgre') {
         con.close()
       })
     })
+  }
+  else if (store.get('JenisDB') == 'Firebird') {
+    // /home/econk/Desktop/wp.fdb
+    // SELECT * FROM Transaksi
+    var Firebird = require('node-firebird');
+    var options = {};
+     
+    options.host = store.get('ServerDB');
+    options.port = 3050;
+    options.database = store.get('NamaDB');
+    options.user = store.get('UsernameDB');
+    options.password = store.get('PasswordDB');
+    options.lowercase_keys = false; // set to true to lowercase keys
+    options.role = null;            // default
+    options.pageSize = 4096;        // default when creating database
+    Firebird.attach(options, function(err, db) {
+        if (err)
+            throw err;
+        db.query($('#QueryDbManual').val(), function(err, result) {
+            Object.keys(result).forEach(function (item) {
+              Object.keys(result[item]).forEach(function (key) {
+                result[item][key] = result[item][key].toString();
+              });
+            });
+            var DataWajibPajak = {}
+            DataWajibPajak[store.get('NPWPD')] = JSON.parse(JSON.stringify(result))
+            console.log(DataWajibPajak)
+            document.getElementById('DbData').value = JSON.stringify(result)
+            $.post(URL+"InputTransaksiWajibPajak", JSON.stringify(DataWajibPajak)).done(function(Respon) {
+              if (Respon == 'ok') {
+                alert('Data Berhasil Di Upload')
+              } else {
+                alert('Data Gagal Di Upload')
+              }
+            })
+            db.detach();
+        });
+     
+    });
   }
 })
 
