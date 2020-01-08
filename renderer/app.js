@@ -4,8 +4,9 @@ const CSVtoJSON = require('csvtojson')
 const schedule = require('node-schedule')
 const Store = require('./store.js')
 
-var URL = 'http://localhost/MonitoringPajak/Autentikasi/'
+// var URL = 'http://localhost/MonitoringPajak/Autentikasi/'
 // var URL = 'http://192.168.43.223/MonitoringPajak/Autentikasi/'
+var URL = 'http://192.168.1.92/MonitoringPajak/Autentikasi/'
 var SinyalOnline
 
 const store = new Store({
@@ -349,16 +350,26 @@ $("#UploadApi").click(function(){
 var DBUpload
 
 if (store.get('JenisData') == 'db') {
-  Jadwal()
-  UploadDataDB()
+  // Jadwal()
+  // UploadDataDB()
 }
 
 $('#db').on('click', () => {
   SetJenisData('JenisData','Uploaddb','db')
   store.set('JenisData', 'db')
   Jadwal()
-  UploadDataDB()
 })
+
+function SimpanDB(){
+  store.set('QueryDB', $('#Querydb').val())
+  store.set('ServerDB', $('#Server').val())
+  store.set('NamaDB', $('#NamaDB').val())
+  store.set('UsernameDB', $('#UsernameDB').val())
+  store.set('PasswordDB', $('#PasswordDB').val())
+  store.set('JenisDB', $('#JenisDB').val())
+  store.set('IndexDB', $("#JenisDB")[0].selectedIndex)
+  UploadDataDB()
+}
 
 $('#PasswordDB').keypress(function(event){
     var keycode = (event.keyCode ? event.keyCode : event.which);
@@ -373,15 +384,85 @@ $('#PasswordDB').keypress(function(event){
         alert('Mohon Input Username Database!')
       } else {
         event.preventDefault();
-        store.set('QueryDB', $('#Querydb').val())
-        store.set('ServerDB', $('#Server').val())
-        store.set('NamaDB', $('#NamaDB').val())
-        store.set('UsernameDB', $('#UsernameDB').val())
-        store.set('PasswordDB', $('#PasswordDB').val())
-        store.set('JenisDB', $('#JenisDB').val())
-        store.set('IndexDB', $("#JenisDB")[0].selectedIndex)
-        console.log('Konfigurasi Database Disimpan')
-        UploadDataDB()
+        if ($('#JenisDB').val() == 'Postgre') {
+          const {Pool,Client} = require('pg')
+          const connectionString = "postgressql://"+$('#UsernameDB').val()+":"+$('#PasswordDB').val()+"@"+$('#Server').val()+":5432/"+$('#NamaDB').val();
+          const client = new Client({
+            connectionString:connectionString
+          })
+          client.connect(err => {
+            if (err) {
+              alert('Koneksi Gagal')
+            } else {
+              SimpanDB()
+              alert('Koneksi Berhasil')
+            }
+          })
+          client.end()
+        }
+        else if ($('#JenisDB').val() == 'MySQL') {
+          var mysql = require('mysql')
+          var con = mysql.createConnection({
+            host: $('#Server').val(),
+            user:$('#UsernameDB').val(),
+            password: $('#PasswordDB').val(),
+            database: $('#NamaDB').val()
+          })
+          con.connect(function(err) {
+            if (err) {
+              alert('Koneksi Gagal')
+            } else {
+              SimpanDB()
+              alert('Koneksi Berhasil')
+            }
+          })
+          con.end()
+        }
+        else if ($('#JenisDB').val() == 'SQLServer') {
+          var sql = require('mssql')
+          var Config = {
+            server : $('#Server').val(),
+            user: $('#UsernameDB').val(),
+            password: $('#PasswordDB').val(),
+            database: $('#NamaDB').val(),
+            port: 1433,
+            option: {
+              encrypt: false
+            }
+          }
+          var con = new sql.ConnectionPool(Config)
+          con.connect(function (err){
+            if (err) {
+              alert('Koneksi Gagal')
+            } else {
+              SimpanDB()
+              alert('Koneksi Berhasil')
+            }
+            con.close()
+          })
+        }
+        else if ($('#JenisDB').val() == 'Firebird') {
+          var Firebird = require('node-firebird');
+          var options = {};
+          options.host = $('#Server').val();
+          options.port = 3050;
+          options.database = $('#NamaDB').val();
+          options.user = $('#UsernameDB').val();
+          options.password = $('#PasswordDB').val();
+          options.lowercase_keys = false; // set to true to lowercase keys
+          options.role = null;            // default
+          options.pageSize = 4096;        // default when creating database
+          Firebird.attach(options, function(err,db) {
+            if (err) {
+              alert('Koneksi Gagal')
+              db.detach()
+            } else {
+              SimpanDB()
+              db.detach()
+              alert('Koneksi Berhasil')
+            }
+          });
+        }
       }
     }
 });
@@ -411,11 +492,10 @@ function UploadDataDB() {
     })
   }
   else if (store.get('JenisDB') == 'MySQL') {
-    console.log('DB MySQL')
     DBUpload = schedule.scheduleJob('*/1 * * * *', function(){
       var mysql = require('mysql')
       var con = mysql.createConnection({
-        host: store.get('Server'),
+        host: store.get('ServerDB'),
         user: store.get('UsernameDB'),
         password: store.get('PasswordDB'),
         database: store.get('NamaDB')
@@ -439,7 +519,6 @@ function UploadDataDB() {
     })
   }
   else if (store.get('JenisDB') == 'SQLServer') {
-    console.log('DB SQLServer')
     DBUpload = schedule.scheduleJob('*/1 * * * *', function(){
       var sql = require('mssql')
       var Config = {
@@ -499,8 +578,6 @@ function UploadDataDB() {
               });
               var DataWajibPajak = {}
               DataWajibPajak[store.get('NPWPD')] = JSON.parse(JSON.stringify(result))
-              console.log(DataWajibPajak)
-              document.getElementById('DbData').value = JSON.stringify(result)
               $.post(URL+"InputTransaksiWajibPajak", JSON.stringify(DataWajibPajak)).done(function(Respon) {
                 if (Respon == 'ok') {
                   console.log('Upload Data DB Firebird Otomatis, Sukses')
@@ -534,7 +611,7 @@ $('#QueryDbManual').keypress(function(event){
 });
 
 $("#UploadDb").click(function(){
-if (store.get('JenisDB') == 'Postgre') {
+  if (store.get('JenisDB') == 'Postgre') {
     // select "NomorTransaksi","SubNominal","Service","Diskon","Pajak","TotalTransaksi","WaktuTransaksi" from "Transaksi"
     const {Pool,Client} = require('pg')
     const connectionString = "postgressql://"+store.get('UsernameDB')+":"+store.get('PasswordDB')+"@"+store.get('ServerDB')+":5432/"+store.get('NamaDB');
@@ -560,7 +637,7 @@ if (store.get('JenisDB') == 'Postgre') {
     // SELECT * FROM Transaksi
     var mysql = require('mysql')
     var con = mysql.createConnection({
-      host: store.get('Server'),
+      host: store.get('ServerDB'),
       user: store.get('UsernameDB'),
       password: store.get('PasswordDB'),
       database: store.get('NamaDB')
