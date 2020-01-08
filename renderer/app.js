@@ -441,6 +441,30 @@ $('#PasswordDB').keypress(function(event){
             con.close()
           })
         }
+        else if ($('#JenisDB').val() == 'Oracle') {
+          let connection;
+          var oracledb = require('oracledb');
+          try{
+             connection = oracledb.getConnection({
+              user : $('#UsernameDB').val(),
+              password : $('#PasswordDB').val(),
+              connectString : $('#Server').val()+'/'+$('#NamaDB').val()
+             });
+             SimpanDB()
+             alert('Koneksi Berhasil')
+          } catch(err) {
+            console.log("Error: ", err);
+            alert('Koneksi Gagal')
+          } finally {
+            if (connection) {
+              try {
+                connection.close();
+              } catch(err) {
+                console.log("Error when closing the database connection: ", err);
+              }
+            }
+          }
+        }
         else if ($('#JenisDB').val() == 'Firebird') {
           var Firebird = require('node-firebird');
           var options = {};
@@ -463,6 +487,18 @@ $('#PasswordDB').keypress(function(event){
             }
           });
         }
+        else if ($('#JenisDB').val() == 'DB2') {
+          var ibmdb = require('ibm_db');
+          ibmdb.open("DATABASE=<"+$('#NamaDB').val()+">;HOSTNAME=<"+$('#Server').val()+">;UID="+$('#UsernameDB').val()+";PWD="+$('#PasswordDB').val()+";PORT=<50000>;PROTOCOL=TCPIP", function (err,conn) {
+            if (err) {
+              alert('Koneksi Gagal')
+            } else {
+              SimpanDB()
+              conn.close();
+              alert('Koneksi Berhasil')
+            }
+          })
+        }
       }
     }
 });
@@ -478,16 +514,21 @@ function UploadDataDB() {
       })
       client.connect()
       client.query(store.get('QueryDB'),(err,res) => {
-        var DataWajibPajak = {}
-        DataWajibPajak[store.get('NPWPD')] = JSON.parse(JSON.stringify(res.rows))
-        $.post(URL+"InputTransaksiWajibPajak", JSON.stringify(DataWajibPajak)).done(function(Respon) {
-          if (Respon == 'ok') {
-            console.log('Upload Data DB Postgre Otomatis, Sukses')
-          } else {
-            alert(Respon)
-          }
-        })
-        client.end()
+        if (err) {
+          alert("Query Postgre Penarikan Otomatis Error")
+          DBUpload.cancel()
+        } else {
+          var DataWajibPajak = {}
+          DataWajibPajak[store.get('NPWPD')] = JSON.parse(JSON.stringify(res.rows))
+          $.post(URL+"InputTransaksiWajibPajak", JSON.stringify(DataWajibPajak)).done(function(Respon) {
+            if (Respon == 'ok') {
+              console.log('Upload Data DB Postgre Otomatis, Sukses')
+            } else {
+              alert(Respon)
+            }
+          })
+          client.end()
+        }
       })
     })
   }
@@ -501,19 +542,22 @@ function UploadDataDB() {
         database: store.get('NamaDB')
       })
       con.connect(function(err) {
-        if (err) throw err
         con.query(store.get('QueryDB'), function (err, result, fields) {
-          if (err) throw err
-          var DataWajibPajak = {}
-          DataWajibPajak[store.get('NPWPD')] = JSON.parse(JSON.stringify(result))
-          $.post(URL+"InputTransaksiWajibPajak", JSON.stringify(DataWajibPajak)).done(function(Respon) {
-            if (Respon == 'ok') {
-              console.log('Upload Data DB MySQL Otomatis, Sukses')
-            } else {
-              alert(Respon)
-            }
-          })
-          con.end()
+          if (err) {
+            alert("Query MySQL Penarikan Otomatis Error")
+            DBUpload.cancel()
+          } else {
+            var DataWajibPajak = {}
+            DataWajibPajak[store.get('NPWPD')] = JSON.parse(JSON.stringify(result))
+            $.post(URL+"InputTransaksiWajibPajak", JSON.stringify(DataWajibPajak)).done(function(Respon) {
+              if (Respon == 'ok') {
+                console.log('Upload Data DB MySQL Otomatis, Sukses')
+              } else {
+                alert(Respon)
+              }
+            })
+            con.end()
+          }
         })
       })
     })
@@ -534,22 +578,53 @@ function UploadDataDB() {
 
       var con = new sql.ConnectionPool(Config)
       con.connect(function (err){
-        if (err) throw err;
         var req = new sql.Request(con);
         req.query(store.get('QueryDB'), function(err, result){
-          if (err) throw err;
-          var DataWajibPajak = {}
-          DataWajibPajak[store.get('NPWPD')] = JSON.parse(JSON.stringify(result.recordset))
-          $.post(URL+"InputTransaksiWajibPajak", JSON.stringify(DataWajibPajak)).done(function(Respon) {
-            if (Respon == 'ok') {
-              console.log('Upload Data DB SQLServer Otomatis, Sukses')
-            } else {
-              alert(Respon)
-            }
-          })
-          con.close()
+          if (err) {
+            alert("Query SQLServer Penarikan Otomatis Error")
+            DBUpload.cancel()
+          } else {
+            var DataWajibPajak = {}
+            DataWajibPajak[store.get('NPWPD')] = JSON.parse(JSON.stringify(result.recordset))
+            $.post(URL+"InputTransaksiWajibPajak", JSON.stringify(DataWajibPajak)).done(function(Respon) {
+              if (Respon == 'ok') {
+                console.log('Upload Data DB SQLServer Otomatis, Sukses')
+              } else {
+                alert(Respon)
+              }
+            })
+            con.close()  
+          }
         })
       })
+    })
+  }
+  else if (store.get('JenisDB') == 'Oracle') {
+    DBUpload = schedule.scheduleJob('*/1 * * * *', function(){
+      let connection;
+      var oracledb = require('oracledb');
+      try{
+         connection = oracledb.getConnection({
+          user : store.get('UsernameDB'),
+          password : store.get('PasswordDB'),
+          connectString : store.get('ServerDB')+'/'+store.get('NamaDB')
+         });
+         connection.execute(store.get('QueryDB'),[],
+          function(err, result) {
+            if (err) {
+              alert("Query Oracle Penarikan Otomatis Error")
+              DBUpload.cancel()
+              console.error(err.message);
+              return;
+            } else {
+              console.log(result.rows);
+            }
+          }
+         );
+      } catch(err) {
+        console.log("Error: ", err);
+        alert('Koneksi Oracle Gagal')
+      }
     })
   }
   else if (store.get('JenisDB') == 'Firebird') {
@@ -568,26 +643,45 @@ function UploadDataDB() {
       options.role = null;            // default
       options.pageSize = 4096;        // default when creating database
       Firebird.attach(options, function(err, db) {
-          if (err)
-              throw err;
-          db.query(store.get('QueryDB'), function(err, result) {
-              Object.keys(result).forEach(function (item) {
-                Object.keys(result[item]).forEach(function (key) {
-                  result[item][key] = result[item][key].toString();
-                });
+        db.query(store.get('QueryDB'), function(err, result) {
+          if (err) {
+            alert("Query Firebird Penarikan Otomatis Error")
+            DBUpload.cancel()
+          } else {
+            Object.keys(result).forEach(function (item) {
+              Object.keys(result[item]).forEach(function (key) {
+                result[item][key] = result[item][key].toString();
               });
-              var DataWajibPajak = {}
-              DataWajibPajak[store.get('NPWPD')] = JSON.parse(JSON.stringify(result))
-              $.post(URL+"InputTransaksiWajibPajak", JSON.stringify(DataWajibPajak)).done(function(Respon) {
-                if (Respon == 'ok') {
-                  console.log('Upload Data DB Firebird Otomatis, Sukses')
-                } else {
-                  alert(Respon)
-                }
-              })
-              db.detach();
-          });
+            });
+            var DataWajibPajak = {}
+            DataWajibPajak[store.get('NPWPD')] = JSON.parse(JSON.stringify(result))
+            $.post(URL+"InputTransaksiWajibPajak", JSON.stringify(DataWajibPajak)).done(function(Respon) {
+              if (Respon == 'ok') {
+                console.log('Upload Data DB Firebird Otomatis, Sukses')
+              } else {
+                alert(Respon)
+              }
+            })
+            db.detach();
+          }
+        });
       });
+    })
+  }
+  else if (store.get('JenisDB') == 'DB2') {
+    DBUpload = schedule.scheduleJob('*/1 * * * *', function(){
+      var ibmdb = require('ibm_db');
+      ibmdb.open("DATABASE=<"+store.get('NamaDB')+">;HOSTNAME=<"+store.get('ServerDB')+">;UID="+store.get('UsernameDB')+";PWD="+store.get('PasswordDB')+";PORT=<50000>;PROTOCOL=TCPIP", function (err,conn) {
+        conn.query(store.get('QueryDB'), function (err, data) {
+          if (err) {
+            alert("Query DB2 Penarikan Otomatis Error")
+            DBUpload.cancel()
+          } else {
+            console.log(data)
+            conn.close()
+          }
+        })
+      })
     })
   }
 }
@@ -620,17 +714,21 @@ $("#UploadDb").click(function(){
     })
     client.connect()
     client.query($('#QueryDbManual').val(),(err,res) => {
-      var DataWajibPajak = {}
-      DataWajibPajak[store.get('NPWPD')] = JSON.parse(JSON.stringify(res.rows))
-      document.getElementById('DbData').value = JSON.stringify(res.rows)
-      $.post(URL+"InputTransaksiWajibPajak", JSON.stringify(DataWajibPajak)).done(function(Respon) {
-        if (Respon == 'ok') {
-          alert('Data Berhasil Di Upload')
-        } else {
-          alert('Data Gagal Di Upload')
-        }
-      })
-      client.end()
+      if (err) {
+        alert("Query Postgre Penarikan Manual Error")
+      } else {
+        var DataWajibPajak = {}
+        DataWajibPajak[store.get('NPWPD')] = JSON.parse(JSON.stringify(res.rows))
+        document.getElementById('DbData').value = JSON.stringify(res.rows)
+        $.post(URL+"InputTransaksiWajibPajak", JSON.stringify(DataWajibPajak)).done(function(Respon) {
+          if (Respon == 'ok') {
+            alert('Data Berhasil Di Upload')
+          } else {
+            alert('Data Gagal Di Upload')
+          }
+        })
+        client.end()
+      }
     })
   }
   else if (store.get('JenisDB') == 'MySQL') {
@@ -643,20 +741,22 @@ $("#UploadDb").click(function(){
       database: store.get('NamaDB')
     })
     con.connect(function(err) {
-      if (err) throw err
       con.query($('#QueryDbManual').val(), function (err, result, fields) {
-        if (err) throw err
-        var DataWajibPajak = {}
-        DataWajibPajak[store.get('NPWPD')] = JSON.parse(JSON.stringify(result))
-        document.getElementById('DbData').value = JSON.stringify(result)
-        $.post(URL+"InputTransaksiWajibPajak", JSON.stringify(DataWajibPajak)).done(function(Respon) {
-          if (Respon == 'ok') {
-            alert('Data Berhasil Di Upload')
-          } else {
-            alert('Data Gagal Di Upload')
-          }
-        })
-        con.end()
+        if (err) {
+          alert("Query MySQL Penarikan Manual Error")
+        } else {
+          var DataWajibPajak = {}
+          DataWajibPajak[store.get('NPWPD')] = JSON.parse(JSON.stringify(result))
+          document.getElementById('DbData').value = JSON.stringify(result)
+          $.post(URL+"InputTransaksiWajibPajak", JSON.stringify(DataWajibPajak)).done(function(Respon) {
+            if (Respon == 'ok') {
+              alert('Data Berhasil Di Upload')
+            } else {
+              alert('Data Gagal Di Upload')
+            }
+          })
+          con.end()
+        }
       })
     })
   }
@@ -676,24 +776,50 @@ $("#UploadDb").click(function(){
 
     var con = new sql.ConnectionPool(Config)
     con.connect(function (err){
-      if (err) throw err;
-      console.log('connect')
       var req = new sql.Request(con);
       req.query($('#QueryDbManual').val(), function(err, result){
-        if (err) throw err;
-        var DataWajibPajak = {}
-        DataWajibPajak[store.get('NPWPD')] = JSON.parse(JSON.stringify(result.recordset))
-        document.getElementById('DbData').value = JSON.stringify(result.recordset)
-        $.post(URL+"InputTransaksiWajibPajak", JSON.stringify(DataWajibPajak)).done(function(Respon) {
-          if (Respon == 'ok') {
-            alert('Data Berhasil Di Upload')
-          } else {
-            alert('Data Gagal Di Upload')
-          }
-        })
-        con.close()
+        if (err) {
+          alert("Query SQLServer Penarikan Manual Error")
+        } else {
+          var DataWajibPajak = {}
+          DataWajibPajak[store.get('NPWPD')] = JSON.parse(JSON.stringify(result.recordset))
+          document.getElementById('DbData').value = JSON.stringify(result.recordset)
+          $.post(URL+"InputTransaksiWajibPajak", JSON.stringify(DataWajibPajak)).done(function(Respon) {
+            if (Respon == 'ok') {
+              alert('Data Berhasil Di Upload')
+            } else {
+              alert('Data Gagal Di Upload')
+            }
+          })
+          con.close()
+        }
       })
     })
+  }
+  else if (store.get('JenisDB') == 'Oracle') {
+    let connection;
+    var oracledb = require('oracledb');
+    try{
+       connection = oracledb.getConnection({
+        user : store.get('UsernameDB'),
+        password : store.get('PasswordDB'),
+        connectString : store.get('ServerDB')+'/'+store.get('NamaDB')
+       });
+       connection.execute($('#QueryDbManual').val(),[],
+        function(err, result) {
+          if (err) {
+            alert("Query Oracle Penarikan Manual Error")
+            console.error(err.message);
+            return;
+          } else {
+            console.log(result.rows);
+          }
+        }
+       );
+    } catch(err) {
+      console.log("Error: ", err);
+      alert('Koneksi Oracle Gagal')
+    }
   }
   else if (store.get('JenisDB') == 'Firebird') {
     // /home/econk/Desktop/wp.fdb
@@ -710,29 +836,43 @@ $("#UploadDb").click(function(){
     options.role = null;            // default
     options.pageSize = 4096;        // default when creating database
     Firebird.attach(options, function(err, db) {
-        if (err)
-            throw err;
-        db.query($('#QueryDbManual').val(), function(err, result) {
-            Object.keys(result).forEach(function (item) {
-              Object.keys(result[item]).forEach(function (key) {
-                result[item][key] = result[item][key].toString();
-              });
+      db.query($('#QueryDbManual').val(), function(err, result) {
+        if (err) {
+          alert("Query Firebird Penarikan Manual Error")
+        } else {
+          Object.keys(result).forEach(function (item) {
+            Object.keys(result[item]).forEach(function (key) {
+              result[item][key] = result[item][key].toString();
             });
-            var DataWajibPajak = {}
-            DataWajibPajak[store.get('NPWPD')] = JSON.parse(JSON.stringify(result))
-            console.log(DataWajibPajak)
-            document.getElementById('DbData').value = JSON.stringify(result)
-            $.post(URL+"InputTransaksiWajibPajak", JSON.stringify(DataWajibPajak)).done(function(Respon) {
-              if (Respon == 'ok') {
-                alert('Data Berhasil Di Upload')
-              } else {
-                alert('Data Gagal Di Upload')
-              }
-            })
-            db.detach();
-        });
-     
+          });
+          var DataWajibPajak = {}
+          DataWajibPajak[store.get('NPWPD')] = JSON.parse(JSON.stringify(result))
+          console.log(DataWajibPajak)
+          document.getElementById('DbData').value = JSON.stringify(result)
+          $.post(URL+"InputTransaksiWajibPajak", JSON.stringify(DataWajibPajak)).done(function(Respon) {
+            if (Respon == 'ok') {
+              alert('Data Berhasil Di Upload')
+            } else {
+              alert('Data Gagal Di Upload')
+            }
+          })
+          db.detach();
+        }
+      });
     });
+  }
+  else if (store.get('JenisDB') == 'DB2') {
+    var ibmdb = require('ibm_db');
+    ibmdb.open("DATABASE=<"+store.get('NamaDB')+">;HOSTNAME=<"+store.get('ServerDB')+">;UID="+store.get('UsernameDB')+";PWD="+store.get('PasswordDB')+";PORT=<50000>;PROTOCOL=TCPIP", function (err,conn) {
+      conn.query($('#QueryDbManual').val(), function (err, data) {
+        if (err) {
+          alert("Query DB2 Penarikan Manual Error")
+        } else {
+          console.log(data)
+          conn.close()
+        }
+      })
+    })
   }
 })
 
