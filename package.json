@@ -15,6 +15,7 @@
     "Dekstop"
   ],
   "author": "nurulfaisolrahman@gmail.com",
+  "license": "ISC",
   "dependencies": {
     "csvtojson": "^2.0.10",
     "ibm_db": "^2.6.3",
